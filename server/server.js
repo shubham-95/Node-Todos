@@ -24,7 +24,11 @@ app.post('/todos',(req,res)=>{
     });
 });
 app.get('/getTodos',(req,res)=>{
-
+   Todo.find().then((docs)=>{
+       res.send(docs)
+   }).catch((err)=>{
+       res.status(400).send(err);
+   }) ;
 });
 
 app.listen(3000,(res)=>{
