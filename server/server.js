@@ -10,7 +10,7 @@ const {ObjectID} = require('mongodb');
 var {mongoose} = require('./db/mongoose');
 var {Todo} = require('./models/todo');
 var {User} = require('./models/user');
-
+var {authenticate} = require('./middleware/authenticate');
 
 var app = express();
 app.use(bodyParser.json());
@@ -18,7 +18,7 @@ app.use(bodyParser.urlencoded());
 app.use(upload.array()); 
 
 
-const port = process.env.PORT;
+const port = process.env.PORT 
 
 app.post('/todos',(req,res)=>{
     var newTodos = new Todo({
@@ -94,6 +94,27 @@ app.patch('/updateTodos/:id',(req,res)=>{
     .catch((err)=>{
         res.status(400).send('invalid id');
     });
+});
+
+
+app.post('/users',(req,res)=>{
+    var body = _.pick(req.body,['email','password']);
+    var newUser = new User(body);
+    
+    newUser.save().then(()=>{
+        return newUser.generateAuthToken();
+    })
+    .then((token)=>{
+        res.header('x-auth',token).send(newUser);        
+    })
+    .catch((error)=>{
+        res.status(404).send(error);
+    });
+});
+
+
+app.get('/users/userDetails',authenticate,(req,res)=>{
+    res.send(req.user);
 });
 
 app.listen(port,(res)=>{
